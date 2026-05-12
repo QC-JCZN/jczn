@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#6B4F4F">
+    <title>精川智能项目QC点监控系统（云端同步版）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #F7F8FA;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            padding-left: 55px;
+        }
+
+        .header {
+            height: 55px;
+            background-color: #6B4F4F;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            left: 55px;
+            right: 0;
+            z-index: 100;
+        }
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            max-width: calc(100% - 80px);
+        }
+        .header-logo {
+            height: 1.1rem;
+            width: auto;
+            display: block;
+        }
+        .header h1 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            line-height: 1.2;
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-line-orient: vertical;
+            margin: 0;
+        }
+        .header .user-info {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .progress-text {
+            font-size: 0.85rem;
+            background: #866868;
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+
+        .project-info-bar {
+            background: #fff;
+            padding: 10px 15px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 0.85rem;
+            position: sticky;
+            top: 0;
+            z-index: 90;
+            border: 1px solid #E5E6EB;
+            margin: 10px 15px 8px;
+            width: calc(100% - 30px);
+            border-radius: 8px;
+        }
+        .project-info-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+        .project-info-bar span {
+            color: #555;
+            flex-shrink: 0;
+            min-width: 80px;
+        }
+        .project-info-bar strong {
+            color: #6B4F4F;
+        }
+        .project-edit-btn {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: #6B4F4F;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: none;
+        }
+
+        .main-container {
+            display: flex;
+            margin-top: 55px;
+            height: calc(100dvh - 55px);
+            overflow: hidden;
+            margin-left: 0;
+            padding: 0 0 20px;
+        }
+
+        .sidebar {
+            width: 55px;
+            background-color: #443C3C;
+            color: #fff;
+            padding: 15px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 101;
+        }
+        .sidebar .menu-title,
+        .sidebar .menu-item span {
+            display: none;
+        }
+        .sidebar .menu-item {
+            padding: 15px 0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sidebar .menu-item:hover,
+        .sidebar .menu-item.active {
+            background-color: #6B4F4F;
+        }
+        .sidebar .menu-item i {
+            font-size: 1.1rem;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            height: 100%;
+            width: 100%;
+            margin-left: 0;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 20px;
+            padding-top: 0;
+        }
+
+        .search-filter {
+            background-color: #fff;
+            padding: 12px 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: stretch;
+            position: sticky;
+            top: 110px;
+            z-index: 80;
+            border: 1px solid #E5E6EB;
+            margin-top: 0;
+            width: calc(100% - 30px);
+            margin-left: 15px;
+            margin-right: 15px;
+            border-radius: 8px;
+            max-height: 42vh;
+            overflow-y: auto;
+        }
+        .search-input,
+        .filter-select {
+            height: 40px;
+            padding: 0 12px;
+            border: 1px solid #DCDFE6;
+            border-radius: 8px;
+            outline: none;
+            width: 100%;
+        }
+        .btn {
+            height: 36px;
+            padding: 0 14px;
+            border: 1px solid #DCDFE6;
+            border-radius: 8px;
+            outline: none;
+            white-space: nowrap;
+        }
+        .search-input:focus {
+            border-color: #6B4F4F;
+        }
+        .filter-select {
+            background-color: #fff;
+        }
+        .btn {
+            border: none;
+            background-color: #6B4F4F;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            height: 36px;
+            flex-shrink: 0;
+        }
+        .btn:hover {
+            background-color: #5A4242;
+        }
+        .sync-btn {
+            background-color: #1E88E5;
+        }
+        .sync-btn:hover {
+            background-color: #0b5e9e;
+        }
+        .create-btn {
+            background-color: #00B42A !important;
+            display: none;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .filter-row .filter-select {
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .qc-monitor {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            padding: 15px;
+            margin-top: 8px;
+            padding-bottom: 120px;
+        }
+        .qc-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 15px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid #E5E6EB;
+        }
+        .qc-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .qc-card .qc-stage {
+            font-size: 0.9rem;
+            color: #6B4F4F;
+            font-weight: 600;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .qc-list {
+            list-style: none;
+        }
+        .qc-item {
+            padding: 10px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .qc-item:last-child {
+            border-bottom: none;
+        }
+        .qc-item .status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+        .time-node {
+            font-size: 0.75rem;
+            color: #6B4F4F;
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            min-width: 110px;
+            text-align: center;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .status.未进行 { background-color: #C9CDD4; }
+        .status.进行中 { background-color: #866868; }
+        .status.已完成 { background-color: #00B42A; }
+        .status.延期   { background-color: #F53F3F; }
+        .status.延期完成 { background-color: #FF7D00; }
+
+        .status-text {
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #fff;
+            font-weight: 500;
+            min-width: 55px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .status-text.未进行 { background-color: #C9CDD4; }
+        .status-text.进行中 { background-color: #866868; }
+        .status-text.已完成 { background-color: #00B42A; }
+        .status-text.延期 { background-color: #F53F3F; }
+        .status-text.延期完成 { background-color: #FF7D00; }
+
+        .qc-name {
+            font-size: 0.85rem;
+            flex: 1;
+            word-break: break-word;
+            line-height: 1.3;
+            white-space: normal;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .qc-info-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-left: 18px;
+        }
+
+        .status-bar-wrap {
+            width: 60px;
+            height: 5px;
+            background: #eee;
+            border-radius: 3px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .status-bar {
+            height: 100%;
+            width: 0%;
+            transition: all 0.3s ease;
+            border-radius: 3px;
+        }
+        .status-bar.未进行 { width: 15%; background:#C9CDD4; }
+        .status-bar.进行中 { width: 50%; background:#866868; }
+        .status-bar.已完成 { width: 100%; background:#00B42A; }
+        .status-bar.延期   { width: 60%; background:#F53F3F; }
+        .status-bar.延期完成 { width: 100%; background:#FF7D00; }
+
+        #importFile { display: none; }
+        .import-btn { background-color: #00B42A !important; display: none; }
+        .export-btn { background-color: #FF7D00 !important; display: none; }
+        .delete-btn { background-color: #F53F3F !important; display: none; }
+        .change-pwd-btn {
+            background-color: #1E88E5 !important;
+            display: none;
+        }
+
+        .qc-modal, .login-modal {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9999;
+            padding: 15px;
+        }
+        .modal-content, .login-box {
+            background: #fff;
+            width: 92%; max-width: 450px;
+            padding: 20px; border-radius: 10px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .modal-content h3, .login-box h3 {
+            margin-bottom: 12px; color: #6B4F4F;
+            font-size: 1rem;
+        }
+        .modal-desc {
+            padding: 12px; background: #f7f8fa;
+            border-radius: 6px; min-height: 60px;
+            white-space: pre-line;
+            font-size: 0.85rem;
+        }
+        .modal-close, .login-btn {
+            margin-top: 15px; padding: 8px 16px;
+            background: #6B4F4F; color: #fff;
+            border: none; border-radius: 8px; cursor: pointer;
+        }
+        .login-input {
+            width: 100%; height: 42px;
+            margin: 8px 0; padding: 0 12px;
+            border: 1px solid #ddd; border-radius: 8px;
+            outline: none;
+        }
+        .logout-btn {
+            padding: 6px 10px;
+            background: #F53F3F;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .overview-container {
+            padding: 0;
+            display: none;
+            height: 100%;
+            overflow-y: auto;
+            padding-top: 70px;
+        }
+        .overview-header {
+            padding:15px;
+            background:#fff;
+            position: fixed;
+            top: 55px;
+            left: 55px;
+            right: 0;
+            z-index:90;
+            border-bottom: 1px solid #E5E6EB;
+            width: calc(100% - 55px);
+            margin: 0;
+        }
+        .overview-content {
+            padding: 15px;
+            width: 100%;
+            margin-top: 0;
+        }
+        .overview-project-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #E5E6EB;
+        }
+        .overview-project-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #6B4F4F;
+            margin-bottom: 8px;
+        }
+        .overview-project-code {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #6B4F4F;
+        }
+        .overview-project-info {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .overview-qc-group {
+            margin-bottom: 12px;
+        }
+        .overview-group-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .overview-group-title.running {
+            background: #f3f4f6;
+            color: #866868;
+        }
+        .overview-group-title.delay {
+            background: #fef0f0;
+            color: #F53F3F;
+        }
+        .overview-empty {
+            font-size: 0.85rem;
+            color: #999;
+            padding: 4px 0;
+        }
+        .loading-mask {
+            text-align: center;
+            padding: 40px;
+            color: #6B4F4F;
+        }
+        .edit-textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            resize: vertical;
+            margin-top: 5px;
+        }
+        .edit-select {
+            width: 100%;
+            height: 38px;
+            padding: 0 8px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            margin: 5px 0 10px;
+        }
+        .save-btn {
+            background-color: #00B42A !important;
+            margin-left: 10px;
+        }
+
+        .resource-container {
+            padding: 0;
+            display: none;
+            height: 100%;
+            overflow-y: auto;
+            padding-top: 70px;
+        }
+        .resource-header {
+            padding: 15px;
+            background: #fff;
+            position: fixed;
+            top: 55px;
+            left: 55px;
+            right: 0;
+            z-index: 90;
+            border-bottom: 1px solid #E5E6EB;
+            width: calc(100% - 55px);
+            margin: 0;
+        }
+        .resource-content {
+            padding: 15px;
+            width: 100%;
+            margin-top: 0;
+        }
+        .resource-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #E5E6EB;
+        }
+        .resource-card h3 {
+            font-size: 1rem;
+            color: #6B4F4F;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .resource-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        .resource-table th,
+        .resource-table td {
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .resource-table th {
+            background-color: #f7f8fa;
+            color: #6B4F4F;
+            font-weight: 600;
+        }
+        .resource-table tr:hover {
+            background-color: #fafafa;
+        }
+
+        @media screen and (max-width: 375px) {
+            .project-info-row { gap: 8px; }
+            .header h1 { font-size: 0.85rem; }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-title">
+        <img src="https://p6-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/2454204a852849cc835a4cc94eec3fd0.jpg~tplv-a9rns2rl98-image.png?lk3s=8e244e95&rcl=202604280822275FD3D14DDF9F1AB5B7CE&rrcfp=dafada99&x-expires=2093559747&x-signature=CdLSg99DrW1p%2BjyON9z4OVg%2Fi58%3D"
+             class="header-logo" alt="LOGO">
+        <h1>精川智能项目QC点监控系统（云端同步）</h1>
+    </div>
+    <div class="user-info">
+        <span id="adminTag" style="display:none;color:#FFD700;">【管理员】</span>
+        <button class="logout-btn" id="logoutBtn" style="display:none;">退出登录</button>
+    </div>
+</div>
+
+<div class="main-container">
+    <div class="sidebar">
+        <div class="menu-title">主菜单</div>
+        <div class="menu-item active" data-page="monitor">
+            <i class="fa-solid fa-tachometer-alt"></i>
+            <span>QC点总览</span>
+        </div>
+        <div class="menu-item" data-page="overview">
+            <i class="fa-solid fa-list-check"></i>
+            <span>当前QC点&延期QC点</span>
+        </div>
+        <div class="menu-item" data-page="resource">
+            <i class="fa-solid fa-users"></i>
+            <span>资源分布</span>
+        </div>
+        <div class="menu-item" id="adminLoginBtn">
+            <i class="fa-solid fa-user-shield"></i>
+            <span>管理员登录</span>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="qc-monitor-page" id="qcMonitorPage">
+            <div class="project-info-bar" id="projectInfoBar" style="position:relative;">
+                <button class="project-edit-btn" id="editProjectInfoBtn">编辑项目信息</button>
+                <div class="project-info-row"><span><strong>项目编号：</strong><span id="infoCode">-</span></span>
+                <span><strong>项目名称：</strong><span id="infoName">-</span></span>
+                <span><strong>客户：</strong><span id="infoCustomer">-</span></span></div>
+                <div class="project-info-row"><span><strong>项目经理：</strong><span id="infoManager">-</span></span>
+                <span><strong>项目工程师：</strong><span id="infoEngineer">-</span></span>
+                <span><strong>项目总负责：</strong><span id="infoTotalManager">-</span></span></div>
+                <div class="project-info-row"><span><strong>电气负责人：</strong><span id="infoElectric">-</span></span>
+                <span><strong>钳装负责人：</strong><span id="infoQianZhuang">-</span></span>
+                <span><strong>电装负责人：</strong><span id="infoDianZhuang">-</span></span></div>
+				<div class="project-info-row"><span><strong>设备数量：</strong><span id="infoDeviceCount">-</span></span></div>
+            </div>
+            <div class="search-filter">
+                <div class="filter-row">
+                    <select class="filter-select" id="projectSelect"><option value="">选择项目</option></select>
+                    <select class="filter-select" id="qcNameSelect">
+                        <option value="">全部QC点</option>
+                    </select>
+                    <select class="filter-select" id="statusFilter">
+                        <option value="all">全部状态</option>
+                        <option value="未进行">未进行</option><option value="进行中">进行中</option>
+                        <option value="已完成">已完成</option><option value="延期">延期</option><option value="延期完成">延期完成</option>
+                    </select>
+                    <select class="filter-select" id="stageFilter">
+                        <option value="all">全部阶段</option>
+                        <option value="early">项目前期</option><option value="design">设计阶段</option>
+                        <option value="purchase">采购生产</option><option value="assemble">装配调试</option>
+                        <option value="accept">验收交付</option><option value="finish">项目收尾</option>
+                    </select>
+                </div>
+                
+                <div class="btn-row">
+                    <button class="btn create-btn" id="createProjectBtn"><i class="fa-solid fa-plus"></i> 新建项目</button>
+                    <button class="btn sync-btn" id="manualSyncBtn"><i class="fa-solid fa-cloud-arrow-up"></i> 信息更新保存</button>
+                    <button class="btn" id="searchBtn"><i class="fa-solid fa-search"></i> 搜索</button>
+                    <button class="btn import-btn" onclick="document.getElementById('importFile').click()"><i class="fa-solid fa-file-excel"></i> 导入Excel</button>
+                    <input type="file" id="importFile" accept=".xlsx,.xls">
+                    <button class="btn export-btn" onclick="exportCurrentProject()"><i class="fa-solid fa-download"></i> 导出Excel</button>
+                    <button class="btn delete-btn" onclick="deleteCurrentProject()"><i class="fa-solid fa-trash"></i> 删除项目</button>
+                    <button class="btn change-pwd-btn" onclick="showChangePwdModal()"><i class="fa-solid fa-key"></i> 修改管理员密码</button>
+                </div>
+            </div>
+            <div class="qc-monitor" id="qcMonitorList"></div>
+        </div>
+
+        <div class="overview-container" id="overviewPage">
+            <div class="overview-header">
+                <h2 style="font-size:1.1rem; color:#6B4F4F;"><i class="fa-solid fa-eye"></i> 所有项目 - 当前QC点 & 延期QC点总览</h2>
+            </div>
+            <div class="overview-content" id="overviewContent"></div>
+        </div>
+
+        <div class="resource-container" id="resourcePage">
+            <div class="resource-header">
+                <h2 style="font-size:1.1rem; color:#6B4F4F;"><i class="fa-solid fa-users"></i> 项目人力资源配置</h2>
+                <div style="margin-top:10px;display:flex;gap:10px;">
+                    <select id="searchPersonName" class="filter-select" style="flex:1;">
+                        <option value="">请选择人员姓名</option>
+                    </select>
+                    <button class="btn" id="searchPersonBtn" style="width:100px;">搜索</button>
+                </div>
+            </div>
+            <div class="resource-content" id="resourceContent"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+    const SUPABASE_URL = "https://xecbmidlfizpuxvpodvt.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhlY2JtaWRsZml6cHV4dnBvZHZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNTY2MjYsImV4cCI6MjA5MjkzMjYyNn0.WmCqQOESmEoRk-LiSPDNHBUkPi70ZQuYyIucZ-p8ZLs";
+
+    let supabaseClient = null;
+    let currentProjectData = {};
+    let isAdmin = false;
+    let isNormalLogin = false;
+    const NORMAL_USER = "user", NORMAL_PWD = "123456";
+    let ADMIN_USER = "admin";
+    let ADMIN_PWD = localStorage.getItem('ADMIN_PASSWORD') || "123456";
+
+    const allQcNames = [
+        "项目方案评审",
+        "项目报价成本评审",
+        "技术协议评审",
+        "合同评审",
+        "确定项目成本目标",
+        "设计输入评审",
+        "客户产品图纸及样件提供",
+        "下发设计立项通知单",
+        "项目立项审批",
+        "制定项目执行计划",
+        "编制设计计划",
+        "设计任务书",
+        "设计方案讨论及工艺验证需求",
+        "内部机械设计评审",
+        "内部电气设计评审",
+        "设计方案成本预估",
+        "客户设计评审",
+        "项目总体设计完整性表下发",
+        "提交长周期物料清单及流水线技术要求",
+        "长周期物料最迟订货点",
+        "按设计计划机械/电气出图及物料清单下发",
+        "项目制作成本审核",
+        "确定最迟订货点",
+        "制定装配质量控制计划",
+        "按机台编制外协件生产计划",
+        "按机台编制外购件采购计划",
+        "机械设计完整性复核",
+        "电气设计完整性复核",
+        "编制装配调试计划",
+        "客户产品调试、验收样件提供",
+        "装配过程检验",
+        "产品样件工装验证及整改",
+        "设备单机通电（气）",
+        "内部验收",
+        "客户预验收总结及验收纪要",
+        "预验收整改完成后检查、验证及移交",
+        "安装调试完成",
+        "与客户沟通编制终验收计划",
+        "项目资料移交、签收",
+        "项目终验收",
+        "终验收整改计划",
+        "整改关闭确认",
+        "设计图纸、资料整理归档",
+        "项目实际成本统计",
+        "项目成本目标统计、分析",
+        "项目管理移交",
+        "项目总结报告",
+        "项目总结关闭会议"
+    ];
+
+    function initQcNameSelect() {
+        const sel = document.getElementById('qcNameSelect');
+        sel.innerHTML = '<option value="">全部QC点</option>';
+        allQcNames.forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            sel.appendChild(opt);
+        });
+    }
+
+    function initPersonSelect() {
+        const select = document.getElementById('searchPersonName');
+        select.innerHTML = '<option value="">请选择人员姓名</option>';
+        
+        const personSet = new Set();
+        Object.values(currentProjectData).forEach(project => {
+            if(project.manager) personSet.add(project.manager);
+            if(project.engineer) personSet.add(project.engineer);
+            if(project.totalManager) personSet.add(project.totalManager);
+            if(project.electric) personSet.add(project.electric);
+            if(project.qianZhuang) personSet.add(project.qianZhuang);
+            if(project.dianZhuang) personSet.add(project.dianZhuang);
+        });
+
+        const persons = Array.from(personSet).sort();
+        persons.forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            select.appendChild(opt);
+        });
+    }
+
+    function initSupabase() {
+        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+            console.warn("Supabase 未正确配置");
+            return false;
+        }
+        try {
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            return true;
+        } catch(e) {
+            console.error("Supabase 初始化失败", e);
+            return false;
+        }
+    }
+
+    async function loadAllProjectsFromCloud() {
+        if (!supabaseClient) return false;
+        try {
+            const { data: projects } = await supabaseClient.from('projects').select('*');
+            const { data: qcItems } = await supabaseClient.from('qc_items').select('*');
+            const newData = {};
+            for (let proj of projects) {
+                const code = proj.code;
+                newData[code] = {
+                    name: proj.name || '', customer: proj.customer || '', manager: proj.manager || '',
+                    electric: proj.electric || '', engineer: proj.engineer || '', qianZhuang: proj.qian_zhuang || '',
+                    dianZhuang: proj.dian_zhuang || '', totalManager: proj.total_manager || '', 
+                    deviceCount: proj.device_count || '',
+                    status: {}, delayReason: {}, timeNode: {}
+                };
+                allQcNames.forEach(n => { 
+                    newData[code].status[n] = '未进行'; 
+                    newData[code].delayReason[n] = ''; 
+                    newData[code].timeNode[n] = ''; 
+                });
+            }
+            for (let item of qcItems) {
+                const code = item.project_code;
+                if (newData[code]) {
+                    newData[code].status[item.qc_name] = item.status;
+                    newData[code].delayReason[item.qc_name] = item.delay_reason || '';
+                    newData[code].timeNode[item.qc_name] = item.time_node || '';
+                }
+            }
+            currentProjectData = newData;
+            return true;
+        } catch (err) {
+            console.error("加载云端数据失败", err);
+            alert("同步失败: " + err.message);
+            return false;
+        }
+    }
+
+    function renderQcMonitor() {
+        const container = document.getElementById('qcMonitorList');
+        const stages = [
+            { key: 'early', name: '项目前期', items: allQcNames.slice(0,9) },
+            { key: 'design', name: '设计阶段', items: allQcNames.slice(9,18) },
+            { key: 'purchase', name: '采购生产', items: allQcNames.slice(18,26) },
+            { key: 'assemble', name: '装配调试', items: allQcNames.slice(26,33) },
+            { key: 'accept', name: '验收交付', items: allQcNames.slice(33,40) },
+            { key: 'finish', name: '项目收尾', items: allQcNames.slice(40) }
+        ];
+        const code = document.getElementById('projectSelect').value;
+        const project = currentProjectData[code];
+        if (!code || !project) {
+            container.innerHTML = '<div style="text-align:center; padding:40px; color:#aaa;">请从上方选择一个项目</div>';
+            return;
+        }
+        let html = '';
+        for (let stage of stages) {
+            let itemsHtml = '';
+            for (let qcName of stage.items) {
+                const st = project.status[qcName] || '未进行';
+                const time = (project.timeNode[qcName] && project.timeNode[qcName].trim() !== '') ? project.timeNode[qcName] : '未设置';
+                itemsHtml += `
+                    <li class="qc-item" data-name="${qcName}">
+                        <div class="qc-name">
+                            <span class="status ${st}"></span>
+                            ${qcName}
+                        </div>
+                        <div class="qc-info-row">
+                            <span class="time-node">${time}</span>
+                            <span class="status-text ${st}">${st}</span>
+                            <div class="status-bar-wrap"><div class="status-bar ${st}"></div></div>
+                        </div>
+                    </li>
+                `;
+            }
+            html += `<div class="qc-card" data-stage="${stage.key}"><div class="qc-stage">${stage.name}</div><ul class="qc-list">${itemsHtml}</ul></div>`;
+        }
+        container.innerHTML = html;
+        document.querySelectorAll('#qcMonitorList .qc-item').forEach(el => {
+            el.onclick = (e) => { e.stopPropagation(); const name = el.dataset.name; showQcDetail(name, code); };
+        });
+        document.getElementById('infoCode').textContent = code;
+        document.getElementById('infoName').textContent = project.name || '-';
+        document.getElementById('infoCustomer').textContent = project.customer || '-';
+        document.getElementById('infoManager').textContent = project.manager || '-';
+        document.getElementById('infoElectric').textContent = project.electric || '-';
+        document.getElementById('infoEngineer').textContent = project.engineer || '-';
+        document.getElementById('infoQianZhuang').textContent = project.qianZhuang || '-';
+        document.getElementById('infoDianZhuang').textContent = project.dianZhuang || '-';
+        document.getElementById('infoTotalManager').textContent = project.totalManager || '-';
+		    document.getElementById('infoDeviceCount').textContent = project.deviceCount || '-';
+    }
+
+    function filterQc() {
+        const selectedQcName = document.getElementById('qcNameSelect').value;
+        const statusVal = document.getElementById('statusFilter').value;
+        const stageVal = document.getElementById('stageFilter').value;
+        const cards = document.querySelectorAll('#qcMonitorList .qc-card');
+        
+        cards.forEach(card => {
+            const stage = card.dataset.stage;
+            let showCard = false;
+            card.querySelectorAll('.qc-item').forEach(item => {
+                const name = item.dataset.name;
+                const st = item.querySelector('.status-text').textContent;
+                
+                const matchName = !selectedQcName || name === selectedQcName;
+                const matchStatus = (statusVal === 'all' || st === statusVal);
+                const matchStage = (stageVal === 'all' || stage === stageVal);
+                const show = matchName && matchStatus && matchStage;
+                
+                item.style.display = show ? 'flex' : 'none';
+                if (show) showCard = true;
+            });
+            card.style.display = showCard ? 'block' : 'none';
+        });
+    }
+
+    async function refreshProjectSelectAndUI() {
+        if (supabaseClient) await loadAllProjectsFromCloud();
+        const select = document.getElementById('projectSelect');
+        select.innerHTML = '<option value="">选择项目</option>';
+        
+        const sortedCodes = Object.keys(currentProjectData).sort((a, b) => a.localeCompare(b, 'zh-CN', { numeric: true }));
+        
+        sortedCodes.forEach(code => {
+            const opt = document.createElement('option');
+            opt.value = code;
+            opt.textContent = code + " - " + (currentProjectData[code].name || "未命名");
+            select.appendChild(opt);
+        });
+        if (sortedCodes.length > 0 && !select.value) select.value = sortedCodes[0];
+        
+        initPersonSelect();
+        renderQcMonitor();
+        filterQc();
+        if (document.getElementById('overviewPage').style.display !== 'none') renderOverviewPage();
+    }
+
+    function renderOverviewPage() {
+        const container = document.getElementById('overviewContent');
+        container.innerHTML = '';
+        const codes = Object.keys(currentProjectData).sort((a, b) => a.localeCompare(b, 'zh-CN', { numeric: true }));
+        if(codes.length===0){ container.innerHTML='<div class="loading-mask">暂无项目，请管理员导入Excel</div>'; return; }
+        for(let code of codes){
+            const p = currentProjectData[code];
+            const running = [], delay = [];
+            Object.entries(p.status).forEach(([name,st])=> { if(st==='进行中') running.push(name); if(st==='延期') delay.push(name); });
+            if(running.length===0 && delay.length===0) continue;
+            const card = document.createElement('div'); card.className='overview-project-card';
+            
+            const runningItems = running.map(n => {
+                const time = (p.timeNode[n] && p.timeNode[n].trim() !== '') ? p.timeNode[n] : '未设置';
+                return `<li class="qc-item" data-name="${n}" data-code="${code}">
+                    <div class="qc-name">
+                        <span class="status 进行中"></span>
+                        ${n}
+                    </div>
+                    <div class="qc-info-row">
+                        <span class="time-node">${time}</span>
+                        <span class="status-text 进行中">进行中</span>
+                        <div class="status-bar-wrap"><div class="status-bar 进行中"></div></div>
+                    </div>
+                </li>`;
+            }).join('');
+            
+            const delayItems = delay.map(n => {
+                const time = (p.timeNode[n] && p.timeNode[n].trim() !== '') ? p.timeNode[n] : '未设置';
+                return `<li class="qc-item" data-name="${n}" data-code="${code}">
+                    <div class="qc-name">
+                        <span class="status 延期"></span>
+                        ${n}
+                    </div>
+                    <div class="qc-info-row">
+                        <span class="time-node">${time}</span>
+                        <span class="status-text 延期">延期</span>
+                        <div class="status-bar-wrap"><div class="status-bar 延期"></div></div>
+                    </div>
+                </li>`;
+            }).join('');
+            
+            card.innerHTML = `<div class="overview-project-header"><div class="overview-project-title">${p.name}  <span class="overview-project-code">${code}</span>
+                    </div>
+                    <div class="overview-project-info">
+                        <span><strong>客户：</strong>${p.customer || '-'}</span>
+                        <span><strong>项目经理：</strong>${p.manager || '-'}</span>
+                        <span><strong>电气负责人：</strong>${p.electric || '-'}</span>
+                        <span><strong>项目工程师：</strong>${p.engineer || '-'}</span>
+                        <span><strong>钳装负责人：</strong>${p.qianZhuang || '-'}</span>
+                        <span><strong>电装负责人：</strong>${p.dianZhuang || '-'}</span>
+                        <span><strong>项目总负责：</strong>${p.totalManager || '-'}</span></div></div>
+            <div class="overview-qc-group"><div class="overview-group-title running"><i class="fa-solid fa-spinner"></i> 当前QC点（${running.length}）</div>${running.length===0?'<div class="overview-empty">无</div>':runningItems}</div>
+            <div class="overview-qc-group"><div class="overview-group-title delay"><i class="fa-solid fa-exclamation-triangle"></i> 延期 QC点（${delay.length}）</div>${delay.length===0?'<div class="overview-empty">无</div>':delayItems}</div>`;
+            container.appendChild(card);
+        }
+        document.querySelectorAll('#overviewContent .qc-item').forEach(el=>{ el.onclick=()=>{ showQcDetail(el.dataset.name, el.dataset.code); }; });
+    }
+
+    function renderResourcePage() {
+        const container = document.getElementById('resourceContent');
+        const selectedName = document.getElementById('searchPersonName').value.trim();
+        
+        let html = '';
+        
+        if (selectedName) {
+            const codes = Object.keys(currentProjectData).sort((a, b) => a.localeCompare(b, 'zh-CN', { numeric: true }));
+            const result = [];
+
+            codes.forEach(code => {
+                const p = currentProjectData[code];
+                const persons = [p.manager, p.engineer, p.totalManager, p.electric, p.qianZhuang, p.dianZhuang].filter(Boolean);
+                if (persons.includes(selectedName)) result.push({ code, ...p });
+            });
+
+            if (result.length === 0) {
+                html += `<div class="loading-mask">未找到「${selectedName}」参与的项目</div>`;
+            } else {
+                html += `
+                <div class="resource-card">
+                    <h3><i class="fa-solid fa-user"></i> 「${selectedName}」参与的项目列表（共 ${result.length} 个）</h3>
+                    <table class="resource-table">
+                        <tr>
+                            <th>项目编号</th>
+                            <th>项目名称</th>
+                            <th>设备数量</th>
+                            <th>参与岗位</th>
+                        </tr>`;
+                result.forEach(item => {
+                    const postList = [];
+                    if (item.manager === selectedName) postList.push('项目经理');
+                    if (item.engineer === selectedName) postList.push('项目工程师');
+                    if (item.totalManager === selectedName) postList.push('项目总负责');
+                    if (item.electric === selectedName) postList.push('电气负责人');
+                    if (item.qianZhuang === selectedName) postList.push('钳装负责人');
+                    if (item.dianZhuang === selectedName) postList.push('电装负责人');
+                    html += `<tr><td>${item.code}</td><td>${item.name || '-'}</td><td>${item.deviceCount || '-'}</td><td>${postList.join('、')}</td></tr>`;
+                });
+                html += `</table></div>`;
+            }
+        }
+
+        const posts = [
+            { key: 'manager', name: '项目经理' },
+            { key: 'electric', name: '电气负责人' },
+            { key: 'engineer', name: '项目工程师' },
+            { key: 'qianZhuang', name: '钳装负责人' },
+            { key: 'dianZhuang', name: '电装负责人' }
+        ];
+        
+        posts.forEach(post => {
+            const statMap = {};
+            Object.entries(currentProjectData).forEach(([code, project]) => {
+                const name = project[post.key];
+                if (!name) return;
+                if (!statMap[name]) statMap[name] = [];
+                statMap[name].push({ code, ...project });
+            });
+
+            html += `
+            <div class="resource-card">
+                <h3><i class="fa-solid fa-briefcase"></i> ${post.name} 项目统计</h3>
+                <table class="resource-table">
+                    <tr><th>负责人姓名</th><th>负责项目数量</th><th>负责项目编号</th></tr>`;
+            
+            Object.entries(statMap).sort((a, b) => b[1].length - a[1].length).forEach(([name, projects]) => {
+                const count = projects.length;
+                const codes = projects.map(p => p.code).join('、');
+                html += `<tr><td>${name}</td><td>${count}</td><td>${codes}</td></tr>`;
+            });
+
+            html += `</table></div>`;
+        });
+
+        container.innerHTML = html;
+    }
+
+    function showQcDetail(name, code) {
+        const proj = currentProjectData[code];
+        if(!proj) return;
+        const st = proj.status[name] || '未进行';
+        const reason = proj.delayReason[name] || '';
+        const timeNode = proj.timeNode[name] || '';
+        
+        const modalDiv = document.createElement('div');
+        modalDiv.className='qc-modal';
+
+        if (isAdmin) {
+            modalDiv.innerHTML = `
+            <div class="modal-content">
+                <h3>${name}</h3>
+                <div><strong>项目：</strong>${proj.name}（${code}）</div>
+                <div style="margin:8px 0;"><strong>时间节点：</strong></div>
+                <input type="date" class="login-input" id="editTimeNode" value="${timeNode}">
+                <div style="margin:8px 0;"><strong>状态：</strong></div>
+                <select class="edit-select" id="editStatus">
+                    <option value="未进行" ${st === '未进行' ? 'selected' : ''}>未进行</option>
+                    <option value="进行中" ${st === '进行中' ? 'selected' : ''}>进行中</option>
+                    <option value="已完成" ${st === '已完成' ? 'selected' : ''}>已完成</option>
+                    <option value="延期" ${st === '延期' ? 'selected' : ''}>延期</option>
+                    <option value="延期完成" ${st === '延期完成' ? 'selected' : ''}>延期完成</option>
+                </select>
+                <div style="margin:8px 0;"><strong>原因说明：</strong></div>
+                <textarea class="edit-textarea" id="editReason">${reason}</textarea>
+                <div style="display:flex; justify-content:flex-end;">
+                    <button class="modal-close">关闭</button>
+                    <button class="btn save-btn" id="saveEditBtn">保存</button>
+                </div>
+            </div>`;
+            document.body.appendChild(modalDiv);
+            modalDiv.querySelector('.modal-close').onclick = () => modalDiv.remove();
+            
+            modalDiv.querySelector('.modal-content').onclick = (e) => e.stopPropagation();
+            modalDiv.onclick = (e) => { if(e.target === modalDiv) modalDiv.remove(); };
+
+            document.getElementById('saveEditBtn').onclick = async () => {
+                const newTime = document.getElementById('editTimeNode').value.trim();
+                const newStatus = document.getElementById('editStatus').value;
+                const newReason = document.getElementById('editReason').value;
+                await saveQcEditToCloud(code, name, newStatus, newReason, newTime);
+                modalDiv.remove();
+            };
+        } else {
+            modalDiv.innerHTML = `<div class="modal-content"><h3>${name}</h3><div><strong>项目：</strong>${proj.name}（${code}）</div>
+            <div style="margin:5px 0;"><strong>时间节点：</strong> ${timeNode || '未设置'}</div>
+            <div style="margin:5px 0;"><strong>状态：</strong> ${st}</div><div style="margin:10px 0;"><strong>原因说明：</strong></div><div class="modal-desc">${reason || '无说明'}</div><button class="modal-close">关闭</button></div>`;
+            document.body.appendChild(modalDiv);
+            modalDiv.querySelector('.modal-close').onclick = () => modalDiv.remove();
+            modalDiv.onclick = (e) => { if(e.target === modalDiv) modalDiv.remove(); };
+        }
+    }
+
+    async function saveQcEditToCloud(projectCode, qcName, newStatus, newReason, newTimeNode) {
+        if (!isAdmin) { alert("无权限"); return; }
+        try {
+            currentProjectData[projectCode].status[qcName] = newStatus;
+            currentProjectData[projectCode].delayReason[qcName] = newReason;
+            currentProjectData[projectCode].timeNode[qcName] = newTimeNode;
+
+            if (supabaseClient) {
+                const { error } = await supabaseClient
+                    .from('qc_items')
+                    .update({ 
+                        status: newStatus, 
+                        delay_reason: newReason,
+                        time_node: newTimeNode
+                    })
+                    .eq('project_code', projectCode)
+                    .eq('qc_name', qcName);
+                if (error) throw error;
+            }
+
+            renderQcMonitor();
+            filterQc();
+            renderOverviewPage();
+            alert("✅ 保存成功！已同步云端");
+        } catch (e) {
+            alert("保存失败：" + e.message);
+        }
+    }
+
+    function showCreateProjectModal() {
+        if(!isAdmin) { alert("请先登录管理员"); return; }
+        const modal = document.createElement('div');
+        modal.className = 'login-modal';
+        modal.innerHTML = `
+        <div class="login-box">
+            <h3>新建项目</h3>
+            <input class="login-input" id="newCode" placeholder="项目编号（必填）" required>
+            <input class="login-input" id="newName" placeholder="项目名称">
+            <input class="login-input" id="newCustomer" placeholder="客户">
+            <input class="login-input" id="newManager" placeholder="项目经理">
+            <input class="login-input" id="newEngineer" placeholder="项目工程师">
+            <input class="login-input" id="newTotalManager" placeholder="项目总负责">
+            <input class="login-input" id="newElectric" placeholder="电气负责人">
+            <input class="login-input" id="newQianZhuang" placeholder="钳装负责人">
+            <input class="login-input" id="newDianZhuang" placeholder="电装负责人">
+			<input class="login-input" id="newDeviceCount" placeholder="设备数量">
+            <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:15px;">
+                <button class="modal-close" id="cancelCreateBtn">取消</button>
+                <button class="btn save-btn" id="confirmCreateBtn">确认创建</button>
+            </div>
+        </div>`;
+        document.body.appendChild(modal);
+
+        document.getElementById('confirmCreateBtn').onclick = async () => {
+            const code = document.getElementById('newCode').value.trim();
+            if(!code) { alert("项目编号不能为空"); return; }
+            if(currentProjectData[code]) { alert("该项目编号已存在"); return; }
+
+            const name = document.getElementById('newName').value.trim();
+            const customer = document.getElementById('newCustomer').value.trim();
+            const manager = document.getElementById('newManager').value.trim();
+            const engineer = document.getElementById('newEngineer').value.trim();
+            const totalManager = document.getElementById('newTotalManager').value.trim();
+            const electric = document.getElementById('newElectric').value.trim();
+            const qianZhuang = document.getElementById('newQianZhuang').value.trim();
+            const dianZhuang = document.getElementById('newDianZhuang').value.trim();
+			  const deviceCount = document.getElementById('newDeviceCount').value.trim();
+
+            await createNewProjectToCloud(code, name, customer, manager, engineer, totalManager, electric, qianZhuang, dianZhuang, deviceCount);
+            modal.remove();
+        };
+        document.getElementById('cancelCreateBtn').onclick = () => modal.remove();
+        modal.onclick = e => { if(e.target === modal) modal.remove(); };
+    }
+
+    async function createNewProjectToCloud(code, name, customer, manager, engineer, totalManager, electric, qianZhuang, dianZhuang, deviceCount) {
+        try {
+            currentProjectData[code] = {
+                name, customer, manager, engineer, totalManager, electric, qianZhuang, dianZhuang, deviceCount,
+                status: {}, delayReason: {}, timeNode: {}
+            };
+            allQcNames.forEach(q => {
+                currentProjectData[code].status[q] = '未进行';
+                currentProjectData[code].delayReason[q] = '';
+                currentProjectData[code].timeNode[q] = '';
+            });
+
+            if (supabaseClient) {
+                await supabaseClient.from('projects').upsert({
+                    code, name, customer, manager, engineer,
+                    total_manager: totalManager, electric,
+                    qian_zhuang: qianZhuang, dian_zhuang: dianZhuang,
+					device_count: deviceCount
+                }, { onConflict: 'code' });
+
+                const qcBatch = allQcNames.map(qcName => ({
+                    project_code: code,
+                    qc_name: qcName,
+                    status: '未进行',
+                    delay_reason: '',
+                    time_node: ''
+                }));
+                await supabaseClient.from('qc_items').upsert(qcBatch, { onConflict: 'project_code, qc_name' });
+            }
+
+            await refreshProjectSelectAndUI();
+            alert("✅ 项目创建成功！已自动分配全部QC点");
+        } catch (e) {
+            alert("创建失败：" + e.message);
+        }
+    }
+
+    async function importExcelToCloud(file) {
+        if (!isAdmin) { alert("请先登录管理员"); return; }
+        if (!supabaseClient) {
+            alert("❌ 未配置 Supabase，无法同步到云端。");
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = async function(evt) {
+            try {
+                const data = new Uint8Array(evt.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(sheet);
+                if(json.length===0) throw new Error("无数据");
+                const first = json[0];
+                const code = first['项目编号']?.toString().trim();
+                if(!code) throw new Error("项目编号为空");
+                let existing = currentProjectData[code] || null;
+                const newStatus = {};
+                const newReason = {};
+                const newTime = {};
+                json.forEach(row => {
+                    const qc = row['QC点名称']?.trim();
+                    const st = row['状态']?.trim() || '未进行';
+                    const reason = row['原因说明'] || '';
+                    const time = row['时间节点'] || '';
+                    if(qc && allQcNames.includes(qc)) { 
+                        newStatus[qc] = st; 
+                        newReason[qc] = reason; 
+                        newTime[qc] = time;
+                    }
+                });
+                const finalStatus = { ...(existing?.status || {}) };
+                const finalReason = { ...(existing?.delayReason || {}) };
+                const finalTime = { ...(existing?.timeNode || {}) };
+                Object.assign(finalStatus, newStatus);
+                Object.assign(finalReason, newReason);
+                Object.assign(finalTime, newTime);
+                allQcNames.forEach(n => { 
+                    if(!finalStatus[n]) finalStatus[n]='未进行'; 
+                    if(!finalReason[n]) finalReason[n]=''; 
+                    if(!finalTime[n]) finalTime[n]='';
+                });
+
+                const projPayload = {
+                    code: code,
+                    name: first['项目名称'] || existing?.name || '',
+                    customer: first['客户'] || existing?.customer || '',
+                    manager: first['项目经理'] || existing?.manager || '',
+                    electric: first['电气负责人'] || existing?.electric || '',
+                    engineer: first['项目工程师'] || existing?.engineer || '',
+                    qian_zhuang: first['钳装负责人'] || existing?.qianZhuang || '',
+                    dian_zhuang: first['电装负责人'] || existing?.dianZhuang || '',
+                    total_manager: first['项目总负责'] || existing?.totalManager || '',
+					device_count: first['设备数量'] || existing?.deviceCount || ''
+                };
+                const { error: upsertProj } = await supabaseClient.from('projects').upsert(projPayload, { onConflict: 'code' });
+                if(upsertProj) throw upsertProj;
+                const qcUpserts = [];
+                for(let qcName of allQcNames) {
+                    qcUpserts.push({
+                        project_code: code,
+                        qc_name: qcName,
+                        status: finalStatus[qcName],
+                        delay_reason: finalReason[qcName],
+                        time_node: finalTime[qcName]
+                    });
+                }
+                const { error: qcError } = await supabaseClient.from('qc_items').upsert(qcUpserts, { onConflict: 'project_code, qc_name' });
+                if(qcError) throw qcError;
+                await refreshProjectSelectAndUI();
+                alert("✅ 导入并同步云端成功！");
+            } catch(err) {
+                console.error(err);
+                alert("导入失败：" + err.message);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    async function deleteCurrentProject() {
+        if(!isAdmin) { alert("请先登录管理员"); return; }
+        const code = document.getElementById('projectSelect').value;
+        if(!code || !currentProjectData[code]) { alert("请选择项目"); return; }
+        if(!confirm(`删除项目 ${code} 及所有QC数据，不可恢复`)) return;
+        if(supabaseClient){
+            try {
+                await supabaseClient.from('qc_items').delete().eq('project_code', code);
+                await supabaseClient.from('projects').delete().eq('code', code);
+                await refreshProjectSelectAndUI();
+                alert("已删除并同步云端");
+            } catch(e) { alert("删除失败："+e.message); }
+        } else {
+            delete currentProjectData[code];
+            await refreshProjectSelectAndUI();
+            alert("已从本地删除（未同步云端）");
+        }
+    }
+
+    function exportCurrentProject() {
+        const code = document.getElementById('projectSelect').value;
+        if(!code || !currentProjectData[code]) { alert("请先选择项目"); return; }
+        const p = currentProjectData[code];
+        const rows = [];
+        allQcNames.forEach(name => {
+            rows.push({
+                '项目编号': code, '项目名称': p.name, 'QC点名称': name,
+                '时间节点': p.timeNode[name] || '',
+                '状态': p.status[name] || '未进行', '原因说明': p.delayReason[name] || '',
+                '客户': p.customer, '项目经理': p.manager, '电气负责人': p.electric,
+                '项目工程师': p.engineer, '钳装负责人': p.qianZhuang, '电装负责人': p.dianZhuang, 
+                '项目总负责': p.totalManager, '设备数量': p.deviceCount
+            });
+        });
+        const ws = XLSX.utils.json_to_sheet(rows); const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "QC数据");
+        XLSX.writeFile(wb, `项目${code}_QC数据.xlsx`);
+    }
+
+    function openEditProjectInfo() {
+        const code = document.getElementById('projectSelect').value;
+        if(!code || !currentProjectData[code]) { alert("请先选择项目"); return; }
+        const p = currentProjectData[code];
+        const modal = document.createElement('div');
+        modal.className = 'login-modal';
+        modal.innerHTML = `
+        <div class="login-box">
+            <h3>编辑项目基本信息</h3>
+            <input class="login-input" id="editInfoCode" value="${code}" placeholder="项目编号（不可修改）" disabled>
+            <input class="login-input" id="editInfoName" value="${p.name || ''}" placeholder="项目名称">
+            <input class="login-input" id="editInfoCustomer" value="${p.customer || ''}" placeholder="客户">
+            <input class="login-input" id="editInfoManager" value="${p.manager || ''}" placeholder="项目经理">
+            <input class="login-input" id="editInfoEngineer" value="${p.engineer || ''}" placeholder="项目工程师">
+            <input class="login-input" id="editInfoTotalManager" value="${p.totalManager || ''}" placeholder="项目总负责">
+            <input class="login-input" id="editInfoElectric" value="${p.electric || ''}" placeholder="电气负责人">
+            <input class="login-input" id="editInfoQianZhuang" value="${p.qianZhuang || ''}" placeholder="钳装负责人">
+            <input class="login-input" id="editInfoDianZhuang" value="${p.dianZhuang || ''}" placeholder="电装负责人">
+			<input class="login-input" id="editInfoDeviceCount" value="${p.deviceCount || ''}" placeholder="设备数量">
+            <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:15px;">
+                <button class="modal-close" id="cancelEditBtn">取消</button>
+                <button class="btn save-btn" id="saveProjectInfoBtn">保存</button>
+            </div>
+        </div>`;
+        document.body.appendChild(modal);
+
+        document.getElementById('saveProjectInfoBtn').onclick = async () => {
+            const name = document.getElementById('editInfoName').value.trim();
+            const customer = document.getElementById('editInfoCustomer').value.trim();
+            const manager = document.getElementById('editInfoManager').value.trim();
+            const engineer = document.getElementById('editInfoEngineer').value.trim();
+            const totalManager = document.getElementById('editInfoTotalManager').value.trim();
+            const electric = document.getElementById('editInfoElectric').value.trim();
+            const qianZhuang = document.getElementById('editInfoQianZhuang').value.trim();
+            const dianZhuang = document.getElementById('editInfoDianZhuang').value.trim();
+			const deviceCount = document.getElementById('editInfoDeviceCount').value.trim();
+
+            await saveProjectInfoToCloud(code, name, customer, manager, engineer, totalManager, electric, qianZhuang, dianZhuang, deviceCount);
+            modal.remove();
+        };
+        document.getElementById('cancelEditBtn').onclick = () => modal.remove();
+        modal.onclick = e => { if(e.target === modal) modal.remove(); };
+    }
+
+    async function saveProjectInfoToCloud(code, name, customer, manager, engineer, totalManager, electric, qianZhuang, dianZhuang, deviceCount) {
+        try {
+            const p = currentProjectData[code];
+            p.name = name;
+            p.customer = customer;
+            p.manager = manager;
+            p.engineer = engineer;
+            p.totalManager = totalManager;
+            p.electric = electric;
+            p.qianZhuang = qianZhuang;
+            p.dianZhuang = dianZhuang;
+			p.deviceCount = deviceCount;
+
+            if (supabaseClient) {
+                const { error } = await supabaseClient
+                    .from('projects')
+                    .update({
+                        name, customer, manager, engineer,
+                        total_manager: totalManager, electric,
+                        qian_zhuang: qianZhuang, dian_zhuang: dianZhuang,
+						device_count: deviceCount
+                    })
+                    .eq('code', code);
+                if (error) throw error;
+            }
+
+            renderQcMonitor();
+            renderOverviewPage();
+            alert("✅ 项目信息保存成功！已同步云端");
+        } catch (e) {
+            alert("保存失败：" + e.message);
+        }
+    }
+
+    function checkNormalLogin() { if(localStorage.getItem('NORMAL_LOGIN')==='true') isNormalLogin=true; else showNormalLoginModal(); }
+    function showNormalLoginModal() {
+        const modal = document.createElement('div'); modal.className='login-modal';
+        modal.innerHTML=`<div class="login-box"><h3>用户登录</h3><input class="login-input" id="normalUser" placeholder="账号"><input type="password" class="login-input" id="normalPwd" placeholder="密码"><button class="login-btn" id="normalLoginBtn">登录</button></div>`;
+        document.body.appendChild(modal);
+        document.getElementById('normalLoginBtn').onclick=()=>{ if(document.getElementById('normalUser').value===NORMAL_USER && document.getElementById('normalPwd').value===NORMAL_PWD){ localStorage.setItem('NORMAL_LOGIN','true'); isNormalLogin=true; modal.remove(); alert("登录成功"); } else alert("账号或密码错误"); };
+        modal.onclick = e => { if(e.target === modal) modal.remove(); };
+    }
+    function showAdminTools(show){
+        document.querySelectorAll('.import-btn, .export-btn, .delete-btn, .change-pwd-btn, .create-btn').forEach(el=>el.style.display=show?'flex':'none');
+        document.getElementById('adminTag').style.display=show?'inline':'none';
+        document.getElementById('logoutBtn').style.display=show?'inline-block':'none';
+        document.getElementById('adminLoginBtn').style.display=show?'none':'flex';
+        document.getElementById('editProjectInfoBtn').style.display = show ? 'block' : 'none';
+    }
+
+    function autoLoginAdmin() {
+        return false;
+    }
+
+    document.getElementById('adminLoginBtn').onclick=()=>{
+        if(isAdmin){ alert("已是管理员"); return; }
+        const modal=document.createElement('div'); modal.className='login-modal';
+        modal.innerHTML=`<div class="login-box"><h3>管理员登录</h3><input class="login-input" id="loginUser" placeholder="账号"><input type="password" class="login-input" id="loginPwd" placeholder="密码"><button class="login-btn" id="doLoginBtn">登录</button></div>`;
+        document.body.appendChild(modal);
+        document.getElementById('doLoginBtn').onclick=()=>{ 
+            const user = document.getElementById('loginUser').value;
+            const pwd = document.getElementById('loginPwd').value;
+            if(user === ADMIN_USER && pwd === ADMIN_PWD){ 
+                isAdmin=true; 
+                modal.remove(); 
+                showAdminTools(true); 
+                alert("管理员登录成功"); 
+            }else alert("账号或密码错误"); 
+        };
+        modal.onclick = e => { if(e.target === modal) modal.remove(); };
+    };
+
+    document.getElementById('logoutBtn').onclick=()=>{ 
+        isAdmin=false; 
+        localStorage.removeItem('ADMIN_LOGIN_USER');
+        localStorage.removeItem('ADMIN_LOGIN_PWD');
+        showAdminTools(false); 
+        alert("已退出管理"); 
+    };
+
+    function showChangePwdModal(){
+        if(!isAdmin){ alert("请先登录管理员"); return; }
+        const modal=document.createElement('div'); modal.className='login-modal';
+        modal.innerHTML=`<div class="login-box"><h3>修改管理员密码</h3><input type="password" class="login-input" id="oldPwd" placeholder="原密码"><input type="password" class="login-input" id="newPwd" placeholder="新密码(≥6位)"><input type="password" class="login-input" id="confirmPwd" placeholder="确认新密码"><button class="login-btn" id="doChangePwdBtn">确认修改</button></div>`;
+        document.body.appendChild(modal);
+        document.getElementById('doChangePwdBtn').onclick=()=>{ 
+            const old=document.getElementById('oldPwd').value;
+            const newp=document.getElementById('newPwd').value;
+            const conf=document.getElementById('confirmPwd').value; 
+            if(old!==ADMIN_PWD){ alert("原密码错误"); return; } 
+            if(newp.length<6){ alert("密码≥6位"); return; } 
+            if(newp!==conf){ alert("两次密码不一致"); return; } 
+            ADMIN_PWD=newp; 
+            localStorage.setItem('ADMIN_PASSWORD',newp);
+            alert("修改成功"); 
+            modal.remove(); 
+        };
+        modal.onclick = e => { if(e.target === modal) modal.remove(); };
+    }
+
+    document.getElementById('manualSyncBtn').addEventListener('click', async () => {
+        if(!supabaseClient) { alert("❌ Supabase未配置，无法同步。"); return; }
+        await refreshProjectSelectAndUI();
+        alert("已从云端同步最新数据");
+    });
+
+    window.addEventListener('load', async () => {
+        checkNormalLogin();
+        initQcNameSelect();
+        const supabaseOk = initSupabase();
+        autoLoginAdmin();
+        if(supabaseOk) await refreshProjectSelectAndUI();
+        else {
+            currentProjectData = {};
+            refreshProjectSelectAndUI();
+            alert("⚠️ Supabase 未正确配置，云端同步功能不可用。");
+        }
+        document.getElementById('projectSelect').addEventListener('change', ()=>{ renderQcMonitor(); filterQc(); });
+        document.getElementById('qcNameSelect').addEventListener('change', filterQc);
+        document.getElementById('statusFilter').addEventListener('change', filterQc);
+        document.getElementById('stageFilter').addEventListener('change', filterQc);
+        document.getElementById('searchBtn').addEventListener('click', filterQc);
+        document.getElementById('importFile').addEventListener('change', e=>{ if(e.target.files[0]) importExcelToCloud(e.target.files[0]); e.target.value=''; });
+        
+        document.getElementById('createProjectBtn').onclick = showCreateProjectModal;
+        document.getElementById('editProjectInfoBtn').onclick = openEditProjectInfo;
+		
+		document.getElementById('searchPersonBtn').addEventListener('click', renderResourcePage);
+		document.getElementById('searchPersonName').addEventListener('change', renderResourcePage);
+
+        document.querySelectorAll('.menu-item').forEach(item=>{
+            item.addEventListener('click',()=>{
+                document.querySelectorAll('.menu-item').forEach(i=>i.classList.remove('active'));
+                item.classList.add('active');
+                const page=item.dataset.page;
+                if(page==='monitor'){ 
+                    document.getElementById('qcMonitorPage').style.display='block'; 
+                    document.getElementById('overviewPage').style.display='none'; 
+                    document.getElementById('resourcePage').style.display='none';
+                    renderQcMonitor(); filterQc(); 
+                } else if(page==='overview'){ 
+                    document.getElementById('qcMonitorPage').style.display='none'; 
+                    document.getElementById('overviewPage').style.display='block'; 
+                    document.getElementById('resourcePage').style.display='none';
+                    renderOverviewPage(); 
+                } else if(page==='resource'){ 
+                    document.getElementById('qcMonitorPage').style.display='none'; 
+                    document.getElementById('overviewPage').style.display='none'; 
+                    document.getElementById('resourcePage').style.display='block';
+                    renderResourcePage(); 
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>
